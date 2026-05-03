@@ -39,6 +39,7 @@ class ClientUpdate(BaseModel):
 
 class ClientOut(ClientBase):
     id: int
+    total_amount: float
     created_at: datetime
     class Config:
         from_attributes = True
