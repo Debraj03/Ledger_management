@@ -1,13 +1,24 @@
 from __future__ import annotations
 
+import os
 import sqlite3
 from pathlib import Path
+import sys
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-DB_PATH = BASE_DIR / "ledger_desktop.db"
+
+def _default_db_path() -> Path:
+    if sys.platform == "win32":
+        app_data = os.environ.get("LOCALAPPDATA") or os.environ.get("APPDATA")
+        if app_data:
+            return Path(app_data) / "ClientLedgerDesk" / "ledger_desktop.db"
+    return Path.home() / ".client_ledger_desk" / "ledger_desktop.db"
+
+
+DB_PATH = Path(os.environ.get("CLIENT_LEDGER_DESK_DB", _default_db_path()))
 
 
 def get_connection() -> sqlite3.Connection:
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
