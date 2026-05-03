@@ -301,3 +301,12 @@ def clear_client_ledgers(client_id: int) -> None:
     with get_connection() as conn:
         conn.execute("DELETE FROM ledgers WHERE client_id = ?", (client_id,))
         conn.commit()
+
+
+def clear_database() -> None:
+    with get_connection() as conn:
+        conn.execute("DELETE FROM ledgers")
+        conn.execute("DELETE FROM clients")
+        conn.execute("DELETE FROM users")
+        conn.execute("DELETE FROM sqlite_sequence WHERE name IN ('ledgers', 'clients', 'users')")
+        conn.commit()

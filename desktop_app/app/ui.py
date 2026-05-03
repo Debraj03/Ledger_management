@@ -284,6 +284,7 @@ class Dashboard(ttk.Frame):
         left.pack(side="left", fill="x", expand=True)
         ttk.Label(left, text="Client Ledger Desk", style="HeaderTitle.TLabel").pack(anchor="w")
         ttk.Label(left, text=f"Logged in as {self.username}", style="HeaderSub.TLabel").pack(anchor="w", pady=(4, 0))
+        ttk.Button(header, text="Reset Database", command=self.reset_database).pack(side="right")
         ttk.Button(header, text="Change Password", command=self.open_change_password).pack(side="right", padx=(0, 8))
         ttk.Button(header, text="Logout", command=self.logout).pack(side="right")
 
@@ -533,6 +534,18 @@ class Dashboard(ttk.Frame):
         repo.delete_client(self.selected_client_id)
         self.clear_client_form()
         self.refresh_all()
+
+    def reset_database(self):
+        if not messagebox.askyesno(
+            "Confirm reset",
+            "This will delete all users, clients, and ledgers. Continue?",
+        ):
+            return
+
+        repo.clear_database()
+        messagebox.showinfo("Database cleared", "All records were deleted. Register a new user to continue.")
+        self.destroy()
+        LoginWindow(self.master, self._open_dashboard)
 
     def open_add_ledger_modal(self):
         if not self.get_client_combo_values():
