@@ -77,6 +77,7 @@ class LoginWindow(ttk.Frame):
         if not repo.authenticate_user(username, password):
             messagebox.showerror("Login failed", "Invalid username or password.")
             return
+        self.destroy()
         self.on_success(username)
 
     def register(self):
@@ -401,7 +402,6 @@ class Dashboard(ttk.Frame):
         LoginWindow(self.master, self._open_dashboard)
 
     def _open_dashboard(self, username: str):
-        self.destroy()
         Dashboard(self.master, username)
 
     def refresh_all(self):
