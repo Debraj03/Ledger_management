@@ -349,7 +349,10 @@ class Dashboard(ttk.Frame):
         ]:
             self.ledger_tree.heading(col, text=title)
             self.ledger_tree.column(col, width=width, anchor="w")
+        ledger_x_scroll = ttk.Scrollbar(self.ledger_screen, orient="horizontal", command=self.ledger_tree.xview)
+        self.ledger_tree.configure(xscrollcommand=ledger_x_scroll.set)
         self.ledger_tree.pack(fill="both", expand=True)
+        ledger_x_scroll.pack(fill="x")
 
     def _build_client_screen(self):
         ttk.Label(self.client_screen, text="Client Management", style="Section.TLabel").pack(anchor="w")
