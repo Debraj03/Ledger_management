@@ -1,10 +1,17 @@
 from __future__ import annotations
 
+from pathlib import Path
 import tkinter as tk
 from tkinter import ttk
 
 from app.db import init_db
 from app.ui import Dashboard, LoginWindow
+
+try:
+    from PIL import Image, ImageTk
+except ImportError:  # pragma: no cover - handled by requirements
+    Image = None
+    ImageTk = None
 
 
 def build_style(root: tk.Tk) -> None:
@@ -45,12 +52,21 @@ def main() -> None:
     root.minsize(1180, 760)
     build_style(root)
 
+    logo_image = None
+    assets_dir = Path(__file__).resolve().parent / "assets"
+    logo_path = assets_dir / "app_logo.jpg"
+    if Image is not None and ImageTk is not None and logo_path.exists():
+        image = Image.open(logo_path)
+        image = image.resize((120, 120))
+        logo_image = ImageTk.PhotoImage(image)
+        root.iconphoto(True, logo_image)
+
     def open_dashboard(username: str) -> None:
         for child in root.winfo_children():
             child.destroy()
         Dashboard(root, username)
 
-    LoginWindow(root, open_dashboard)
+    LoginWindow(root, open_dashboard, logo_image=logo_image)
     root.mainloop()
 
 

@@ -24,15 +24,18 @@ class ScrollableFrame(ttk.Frame):
 
 
 class LoginWindow(ttk.Frame):
-    def __init__(self, master: tk.Tk, on_success: Callable[[str], None]):
+    def __init__(self, master: tk.Tk, on_success: Callable[[str], None], logo_image: tk.PhotoImage | None = None):
         super().__init__(master, padding=24)
         self.master = master
         self.on_success = on_success
+        self.logo_image = logo_image
 
         self.columnconfigure(0, weight=1)
 
         header = ttk.Frame(self)
         header.grid(row=0, column=0, sticky="ew", pady=(0, 18))
+        if self.logo_image is not None:
+            ttk.Label(header, image=self.logo_image).pack(anchor="w", pady=(0, 8))
         ttk.Label(header, text="Client Ledger Desk", style="Title.TLabel").pack(anchor="w")
         ttk.Label(
             header,
