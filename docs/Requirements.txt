@@ -1,0 +1,8 @@
+Requirements:
+1.Need to add the product name and the need to add the update time field
+2.Need to show the dates into current Bengali calendar date, also in the excel sheet
+3.Add the payment management,
+  client name, amount, mode of payment, date of payment(Bengali)/Automatically the current date and user could modify this
+4.Payment calculation , total paid , total cost and due price
+5.Need to add the payment records to the excel file
+6.On clearing DB the password is required and only the current user data will be deleted.

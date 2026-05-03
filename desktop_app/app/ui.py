@@ -1,12 +1,23 @@
 from __future__ import annotations
 
 import tkinter as tk
-from tkinter import filedialog, messagebox, ttk
+from tkinter import filedialog, messagebox, ttk, simpledialog
 import importlib
 from typing import Callable
 from datetime import datetime
 
 from . import repository as repo
+
+
+def _convert_ist_date_to_utc_iso(date_str: str) -> str:
+    """Convert IST date string (YYYY-MM-DD) to UTC ISO format with time."""
+    dt = datetime.strptime(date_str, "%Y-%m-%d")
+    # Treat the parsed date as IST midnight
+    ist_dt = dt.replace(tzinfo=repo.IST)
+    # Convert to UTC
+    utc_dt = ist_dt.astimezone(repo.UTC)
+    # Return UTC ISO format
+    return utc_dt.isoformat(timespec="seconds")
 
 
 class ScrollableFrame(ttk.Frame):
@@ -176,15 +187,16 @@ class LedgerEntryModal(tk.Toplevel):
 
             cal_window = tk.Toplevel(row_frame)
             cal_window.title("Select Date")
+            ist_now = datetime.now(repo.IST)
             cal = tkcalendar.DateEntry(
                 cal_window,
                 width=12,
                 background="darkblue",
                 foreground="white",
                 borderwidth=2,
-                year=datetime.now().year,
-                month=datetime.now().month,
-                day=datetime.now().day,
+                year=ist_now.year,
+                month=ist_now.month,
+                day=ist_now.day,
             )
             cal.pack(padx=10, pady=10)
 
@@ -243,7 +255,7 @@ class LedgerEntryModal(tk.Toplevel):
                 "product_name": product_name,
                 "quantity_kg": qty,
                 "price_per_kg": price,
-                "created_at": created_at + "T00:00:00"  # Convert date to ISO format
+                "created_at": _convert_ist_date_to_utc_iso(created_at)
             })
 
         if not entries:
@@ -421,7 +433,7 @@ class Dashboard(ttk.Frame):
             ("quantity", "Qty (kg)", 80),
             ("price", "Price/kg", 80),
             ("total", "Total", 90),
-            ("created", "Created (Bengali)", 150),
+            ("created", "Created (IST | Bengali)", 190),
         ]:
             self.ledger_tree.heading(col, text=title)
             self.ledger_tree.column(col, width=width, anchor="w")
@@ -505,7 +517,7 @@ class Dashboard(ttk.Frame):
             ("client", "Client", 170),
             ("amount", "Amount", 100),
             ("mode", "Payment Mode", 120),
-            ("created", "Created (Bengali)", 180),
+            ("created", "Created (IST | Bengali)", 220),
         ]:
             self.payment_tree.heading(col, text=title)
             self.payment_tree.column(col, width=width, anchor="w")
@@ -591,7 +603,7 @@ class Dashboard(ttk.Frame):
                     row["quantity_kg"],
                     row["price_per_kg"],
                     f"{row['total_price']:.2f}",
-                    repo.utc_to_bengali_date(row["created_at"]),
+                    repo.utc_to_ist_and_bengali_date(row["created_at"]),
                 ),
             )
 
@@ -696,6 +708,20 @@ class Dashboard(ttk.Frame):
         ):
             return
 
+        # Ask for password verification
+        password = simpledialog.askstring(
+            "Password verification",
+            "Enter your password to confirm database reset:",
+            show="*"
+        )
+        if not password:
+            messagebox.showwarning("Cancelled", "Database reset cancelled.")
+            return
+        
+        if not repo.authenticate_user(self.username, password):
+            messagebox.showerror("Access denied", "Incorrect password. Database reset cancelled.")
+            return
+
         repo.clear_database()
         messagebox.showinfo("Database cleared", "All records were deleted. Register a new user to continue.")
         self.destroy()
@@ -773,7 +799,7 @@ class Dashboard(ttk.Frame):
                     payment["client_name"],
                     f"{payment['amount']:.2f}",
                     payment["payment_mode"],
-                    repo.utc_to_bengali_date(payment["created_at"]),
+                    repo.utc_to_ist_and_bengali_date(payment["created_at"]),
                 ),
             )
 
@@ -898,7 +924,7 @@ class PaymentEntryModal(tk.Toplevel):
             messagebox.showerror("Missing data", "Enter a payment mode.")
             return
 
-        created_at = self.selected_date.get() + "T00:00:00"
+        created_at = _convert_ist_date_to_utc_iso(self.selected_date.get())
 
         try:
             repo.create_payment(client_id, amount, payment_mode, created_at)

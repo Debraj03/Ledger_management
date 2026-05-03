@@ -35,6 +35,15 @@ def utc_to_ist_string(value: str | None) -> str:
     return dt.astimezone(IST).strftime("%Y-%m-%d %H:%M:%S")
 
 
+def utc_to_ist_date(value: str | None) -> str:
+    if not value:
+        return ""
+    dt = datetime.fromisoformat(value)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=UTC)
+    return dt.astimezone(IST).strftime("%Y-%m-%d")
+
+
 def hash_password(password: str) -> str:
     salt = secrets.token_bytes(16)
     digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 150_000)
@@ -268,7 +277,7 @@ def export_client_ledgers(client_id: int) -> BytesIO | None:
         sheet["A1"].font = Font(bold=True, color="FFFFFF", size=12)
         sheet["A1"].fill = PatternFill("solid", fgColor="00B050")
         
-        payment_headers = ["ID", "Amount", "Mode", "Date"]
+        payment_headers = ["Amount", "Mode", "Date (IST | Bengali)"]
         for col, header in enumerate(payment_headers, start=1):
             cell = sheet.cell(row=2, column=col, value=header)
             cell.font = Font(bold=True, color="FFFFFF")
@@ -276,17 +285,16 @@ def export_client_ledgers(client_id: int) -> BytesIO | None:
             cell.alignment = Alignment(horizontal="center")
         
         for idx, payment in enumerate(payments, start=3):
-            sheet.cell(row=idx, column=1, value=payment["id"])
-            sheet.cell(row=idx, column=2, value=payment["amount"])
-            sheet.cell(row=idx, column=3, value=payment["payment_mode"])
-            sheet.cell(row=idx, column=4, value=utc_to_bengali_date(payment["created_at"]))
+            sheet.cell(row=idx, column=1, value=payment["amount"])
+            sheet.cell(row=idx, column=2, value=payment["payment_mode"])
+            sheet.cell(row=idx, column=3, value=utc_to_ist_and_bengali_date(payment["created_at"]))
         
         # Products section
         sheet["E1"] = "PRODUCT RECORDS"
         sheet["E1"].font = Font(bold=True, color="FFFFFF", size=12)
         sheet["E1"].fill = PatternFill("solid", fgColor="0070C0")
         
-        product_headers = ["ID", "Product", "Qty (kg)", "Price/kg", "Total", "Date"]
+        product_headers = ["Product", "Qty (kg)", "Price/kg", "Total", "Date (IST | Bengali)"]
         for col, header in enumerate(product_headers, start=5):
             cell = sheet.cell(row=2, column=col, value=header)
             cell.font = Font(bold=True, color="FFFFFF")
@@ -294,12 +302,11 @@ def export_client_ledgers(client_id: int) -> BytesIO | None:
             cell.alignment = Alignment(horizontal="center")
         
         for idx, ledger in enumerate(ledgers, start=3):
-            sheet.cell(row=idx, column=5, value=ledger["id"])
-            sheet.cell(row=idx, column=6, value=ledger.get("product_name", ""))
-            sheet.cell(row=idx, column=7, value=ledger["quantity_kg"])
-            sheet.cell(row=idx, column=8, value=ledger["price_per_kg"])
-            sheet.cell(row=idx, column=9, value=ledger["total_price"])
-            sheet.cell(row=idx, column=10, value=utc_to_bengali_date(ledger["created_at"]))
+            sheet.cell(row=idx, column=5, value=ledger.get("product_name", ""))
+            sheet.cell(row=idx, column=6, value=ledger["quantity_kg"])
+            sheet.cell(row=idx, column=7, value=ledger["price_per_kg"])
+            sheet.cell(row=idx, column=8, value=ledger["total_price"])
+            sheet.cell(row=idx, column=9, value=utc_to_ist_and_bengali_date(ledger["created_at"]))
     else:
         # For Seller: Products on left, Payments on right
         # Products section
@@ -307,7 +314,7 @@ def export_client_ledgers(client_id: int) -> BytesIO | None:
         sheet["A1"].font = Font(bold=True, color="FFFFFF", size=12)
         sheet["A1"].fill = PatternFill("solid", fgColor="0070C0")
         
-        product_headers = ["ID", "Product", "Qty (kg)", "Price/kg", "Total", "Date"]
+        product_headers = ["Product", "Qty (kg)", "Price/kg", "Total", "Date (IST | Bengali)"]
         for col, header in enumerate(product_headers, start=1):
             cell = sheet.cell(row=2, column=col, value=header)
             cell.font = Font(bold=True, color="FFFFFF")
@@ -315,19 +322,18 @@ def export_client_ledgers(client_id: int) -> BytesIO | None:
             cell.alignment = Alignment(horizontal="center")
         
         for idx, ledger in enumerate(ledgers, start=3):
-            sheet.cell(row=idx, column=1, value=ledger["id"])
-            sheet.cell(row=idx, column=2, value=ledger.get("product_name", ""))
-            sheet.cell(row=idx, column=3, value=ledger["quantity_kg"])
-            sheet.cell(row=idx, column=4, value=ledger["price_per_kg"])
-            sheet.cell(row=idx, column=5, value=ledger["total_price"])
-            sheet.cell(row=idx, column=6, value=utc_to_bengali_date(ledger["created_at"]))
+            sheet.cell(row=idx, column=1, value=ledger.get("product_name", ""))
+            sheet.cell(row=idx, column=2, value=ledger["quantity_kg"])
+            sheet.cell(row=idx, column=3, value=ledger["price_per_kg"])
+            sheet.cell(row=idx, column=4, value=ledger["total_price"])
+            sheet.cell(row=idx, column=5, value=utc_to_ist_and_bengali_date(ledger["created_at"]))
         
         # Payments section
         sheet["H1"] = "PAYMENT RECORDS"
         sheet["H1"].font = Font(bold=True, color="FFFFFF", size=12)
         sheet["H1"].fill = PatternFill("solid", fgColor="00B050")
         
-        payment_headers = ["ID", "Amount", "Mode", "Date"]
+        payment_headers = ["Amount", "Mode", "Date (IST | Bengali)"]
         for col, header in enumerate(payment_headers, start=8):
             cell = sheet.cell(row=2, column=col, value=header)
             cell.font = Font(bold=True, color="FFFFFF")
@@ -335,10 +341,9 @@ def export_client_ledgers(client_id: int) -> BytesIO | None:
             cell.alignment = Alignment(horizontal="center")
         
         for idx, payment in enumerate(payments, start=3):
-            sheet.cell(row=idx, column=8, value=payment["id"])
-            sheet.cell(row=idx, column=9, value=payment["amount"])
-            sheet.cell(row=idx, column=10, value=payment["payment_mode"])
-            sheet.cell(row=idx, column=11, value=utc_to_bengali_date(payment["created_at"]))
+            sheet.cell(row=idx, column=8, value=payment["amount"])
+            sheet.cell(row=idx, column=9, value=payment["payment_mode"])
+            sheet.cell(row=idx, column=10, value=utc_to_ist_and_bengali_date(payment["created_at"]))
 
     # Summary sheet
     summary = workbook.create_sheet("Summary")
@@ -382,10 +387,10 @@ def clear_client_ledgers(client_id: int) -> None:
 
 def clear_database() -> None:
     with get_connection() as conn:
+        conn.execute("DELETE FROM payments")
         conn.execute("DELETE FROM ledgers")
         conn.execute("DELETE FROM clients")
         conn.execute("DELETE FROM users")
-        conn.execute("DELETE FROM payments")
         conn.execute("DELETE FROM sqlite_sequence WHERE name IN ('ledgers', 'clients', 'users', 'payments')")
         conn.commit()
 
@@ -405,6 +410,14 @@ def utc_to_bengali_date(value: str | None) -> str:
     month = bangla_date.get("month", "")
     year = bangla_date.get("year", "")
     return f"{date} {month} {year}".strip()
+
+
+def utc_to_ist_and_bengali_date(value: str | None) -> str:
+    ist_date = utc_to_ist_date(value)
+    bengali_date = utc_to_bengali_date(value)
+    if ist_date and bengali_date:
+        return f"{ist_date} | {bengali_date}"
+    return ist_date or bengali_date
 
 
 # Payment Management Functions
