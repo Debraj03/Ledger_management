@@ -1,3 +1,5 @@
 openpyxl
 tzdata
 pillow
+tkcalendar
+bangla
